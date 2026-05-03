@@ -62,7 +62,7 @@
 
     @if($activeBorrowings->count() === 0)
         <div class="card" style="text-align:center;padding:48px 20px;color:var(--text-muted);">
-            <div style="font-size:36px;margin-bottom:12px;">📭</div>
+            <div style="font-size:36px;margin-bottom:12px;"></div>
             <div style="font-size:14px;font-weight:700;color:var(--maroon-deep);">No active requests</div>
             <div style="font-size:12px;margin-top:6px;">Browse books and submit a borrow request to get started</div>
             <a href="{{ route('student.browse-books') }}" class="btn btn-primary" style="display:inline-block;margin-top:16px;padding:10px 22px;font-size:12px;text-decoration:none;">Browse Books</a>
@@ -168,6 +168,139 @@
             </div>
             @endforeach
         </div>
+    @endif
+</div>
+
+{{-- HISTORY BORROWINGS --}}
+<div style="margin-bottom:28px;">
+    <div style="font-family:'Playfair Display',serif;font-size:18px;font-weight:700;color:var(--maroon-deep);margin-bottom:14px;display:flex;align-items:center;gap:8px;">
+        <span>Borrowing History</span>
+        <span style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--maroon-deep);color:#fff;">{{ $historyBorrowings->total() }}</span>
+    </div>
+
+    {{-- SEARCH & FILTER --}}
+    <form method="GET" action="{{ route('student.borrowed-books') }}" style="margin-bottom:16px;">
+        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+            <div style="position:relative;flex:1;min-width:200px;">
+                <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);opacity:0.4;" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+                <input type="text" name="search" value="{{ $search }}" placeholder="Search by book title or author..."
+                    style="width:100%;padding:10px 14px 10px 40px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;outline:none;">
+            </div>
+            <select name="status" onchange="this.form.submit()"
+                style="padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;outline:none;background:#fff;min-width:150px;">
+                <option value="">All Status</option>
+                <option value="returned" {{ $status === 'returned' ? 'selected' : '' }}>Returned</option>
+                <option value="declined" {{ $status === 'declined' ? 'selected' : '' }}>Declined</option>
+            </select>
+            <button type="submit"
+                style="padding:10px 20px;background:var(--maroon-deep);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">
+                Search
+            </button>
+            @if($search || $status)
+            <a href="{{ route('student.borrowed-books') }}"
+                style="padding:10px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;color:var(--text-muted);text-decoration:none;display:flex;align-items:center;">
+                Clear
+            </a>
+            @endif
+        </div>
+    </form>
+
+    @if($historyBorrowings->count() === 0)
+        <div class="card" style="text-align:center;padding:40px 20px;color:var(--text-muted);">
+            <div style="font-size:32px;margin-bottom:10px;"></div>
+            <div style="font-size:14px;font-weight:700;">No history found</div>
+            <div style="font-size:12px;margin-top:4px;">
+                {{ $search || $status ? 'Try a different search or filter' : 'Your returned and declined books will appear here' }}
+            </div>
+        </div>
+    @else
+        <div class="card" style="padding:0;overflow:hidden;">
+            <table class="tbl">
+                <thead>
+                    <tr>
+                        <th>Book</th>
+                        <th>Receipt No.</th>
+                        <th>Date Borrowed</th>
+                        <th>Date Returned</th>
+                        <th>Status</th>
+                        <th>Penalty</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($historyBorrowings as $b)
+                    <tr>
+                        <td>
+                            <div style="font-weight:700;color:var(--maroon-deep);font-size:13px;">{{ $b->book->title ?? 'N/A' }}</div>
+                            <div style="font-size:11px;color:var(--text-muted);">{{ $b->book->author ?? '—' }}</div>
+                        </td>
+                        <td style="font-size:11px;font-weight:700;color:#92400e;">{{ $b->receipt_no ?? '—' }}</td>
+                        <td style="font-size:12px;color:var(--text-muted);">
+                            {{ $b->date_borrowed ? \Carbon\Carbon::parse($b->date_borrowed)->format('M d, Y') : '—' }}
+                        </td>
+                        <td style="font-size:12px;color:var(--text-muted);">
+                            {{ $b->date_returned ? \Carbon\Carbon::parse($b->date_returned)->format('M d, Y') : '—' }}
+                        </td>
+                        <td>
+                            @if($b->borrow_status === 'returned')
+                                <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(59,130,246,0.1);color:#3b82f6;">Returned</span>
+                            @else
+                                <span style="font-size:10px;font-weight:700;padding:2px 8px;border-radius:20px;background:rgba(192,57,43,0.1);color:#c0392b;">Declined</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($b->penalty)
+                                <span style="font-size:12px;font-weight:700;color:#c0392b;">₱{{ number_format($b->penalty->amount, 2) }}</span>
+                                <div style="font-size:10px;color:var(--text-muted);">{{ $b->penalty->status }}</div>
+                            @else
+                                <span style="font-size:12px;color:var(--text-muted);">—</span>
+                            @endif
+                        </td>
+                        <td>
+                            @if($b->borrow_status === 'returned')
+                            <button onclick="openReceiptModal({{ $b->id }})"
+                                style="font-size:11px;font-weight:700;padding:6px 12px;border-radius:7px;border:1.5px solid var(--border);background:#fff;color:var(--maroon-deep);cursor:pointer;">
+                                Receipt
+                            </button>
+                            @endif
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        </div>
+
+        {{-- PAGINATION --}}
+        @if($historyBorrowings->hasPages())
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px;">
+            <div style="font-size:13px;color:var(--text-muted);">
+                Showing <strong>{{ $historyBorrowings->firstItem() }}</strong> - <strong>{{ $historyBorrowings->lastItem() }}</strong>
+                of <strong>{{ $historyBorrowings->total() }}</strong> records
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                @if($historyBorrowings->onFirstPage())
+                    <span style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:#ccc;cursor:not-allowed;">‹ Prev</span>
+                @else
+                    <a href="{{ $historyBorrowings->previousPageUrl() }}"
+                       style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">‹ Prev</a>
+                @endif
+                @foreach($historyBorrowings->getUrlRange(1, $historyBorrowings->lastPage()) as $page => $url)
+                    @if($page == $historyBorrowings->currentPage())
+                        <span style="padding:7px 13px;border-radius:8px;background:var(--maroon-deep);color:#fff;font-size:13px;font-weight:700;">{{ $page }}</span>
+                    @else
+                        <a href="{{ $url }}"
+                           style="padding:7px 13px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">{{ $page }}</a>
+                    @endif
+                @endforeach
+                @if($historyBorrowings->hasMorePages())
+                    <a href="{{ $historyBorrowings->nextPageUrl() }}"
+                       style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">Next ›</a>
+                @else
+                    <span style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:#ccc;cursor:not-allowed;">Next ›</span>
+                @endif
+            </div>
+        </div>
+        @endif
     @endif
 </div>
 
@@ -301,7 +434,7 @@
 @section('scripts')
 <script>
 const borrowings = {
-    @foreach(array_merge($activeBorrowings->all(), $historyBorrowings->all()) as $b)
+    @foreach(array_merge($activeBorrowings->all(), $historyBorrowings->items()) as $b)
     {{ $b->id }}: {
         receiptNo: "{{ $b->receipt_no ?? '—' }}",
         title: @json($b->book->title ?? 'N/A'),

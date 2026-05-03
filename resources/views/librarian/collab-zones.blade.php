@@ -32,6 +32,19 @@
     @if($pendingRoomReqs->count() > 0)
     <div class="card" style="margin-bottom:16px;">
         <div class="card-title">Pending Room Requests</div>
+        <form method="GET" action="{{ route('librarian.collab-zones') }}" style="margin-bottom:14px;">
+        <div style="display:flex;gap:10px;flex-wrap:wrap;">
+            <div style="position:relative;flex:1;min-width:220px;">
+                <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);opacity:0.4;" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by student name..."
+                    style="width:100%;padding:10px 14px 10px 40px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;outline:none;">
+            </div>
+            <button type="submit" style="padding:10px 20px;background:var(--maroon-deep);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">Search</button>
+            @if(request('search'))
+            <a href="{{ route('librarian.collab-zones') }}" style="padding:10px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;color:var(--text-muted);text-decoration:none;display:flex;align-items:center;">Clear</a>
+            @endif
+        </div>
+    </form>
         <table class="tbl">
             <thead>
                 <tr>

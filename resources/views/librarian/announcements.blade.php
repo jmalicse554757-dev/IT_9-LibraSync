@@ -58,10 +58,25 @@
     <div>
         <div style="font-family:'Playfair Display',serif;font-size:17px;font-weight:700;color:var(--maroon-deep);margin-bottom:14px;display:flex;align-items:center;gap:8px;">
             <span>All Announcements</span>
-            <span style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--maroon-deep);color:#fff;">{{ $announcements->count() }}</span>
+           <span style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:20px;background:var(--maroon-deep);color:#fff;">{{ $announcements->total() }}</span>
         </div>
 
-        @if($announcements->count() === 0)
+        {{-- SEARCH --}}
+<form method="GET" action="{{ route('librarian.announcements') }}" style="margin-bottom:16px;">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div style="position:relative;flex:1;min-width:200px;">
+            <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);opacity:0.4;" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" name="search" value="{{ $search }}" placeholder="Search announcements..."
+                style="width:100%;padding:10px 14px 10px 40px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;outline:none;">
+        </div>
+        <button type="submit" style="padding:10px 20px;background:var(--maroon-deep);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">Search</button>
+        @if($search)
+        <a href="{{ route('librarian.announcements') }}" style="padding:10px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;color:var(--text-muted);text-decoration:none;display:flex;align-items:center;">Clear</a>
+        @endif
+    </div>
+</form>
+
+@if($announcements->count() === 0)
         <div class="card" style="text-align:center;padding:48px 20px;color:var(--text-muted);">
             <div style="font-size:14px;font-weight:700;color:var(--maroon-deep);">No announcements yet</div>
             <div style="font-size:12px;margin-top:6px;">Post your first announcement using the form</div>
@@ -111,6 +126,39 @@
             </div>
             @endforeach
         </div>
+
+        {{-- PAGINATION --}}
+        @if($announcements->hasPages())
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px;">
+            <div style="font-size:13px;color:var(--text-muted);">
+                Showing <strong>{{ $announcements->firstItem() }}</strong> - <strong>{{ $announcements->lastItem() }}</strong>
+                of <strong>{{ $announcements->total() }}</strong> announcements
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                @if($announcements->onFirstPage())
+                    <span style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:#ccc;cursor:not-allowed;">‹ Prev</span>
+                @else
+                    <a href="{{ $announcements->previousPageUrl() }}"
+                       style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">‹ Prev</a>
+                @endif
+                @foreach($announcements->getUrlRange(1, $announcements->lastPage()) as $page => $url)
+                    @if($page == $announcements->currentPage())
+                        <span style="padding:7px 13px;border-radius:8px;background:var(--maroon-deep);color:#fff;font-size:13px;font-weight:700;">{{ $page }}</span>
+                    @else
+                        <a href="{{ $url }}"
+                           style="padding:7px 13px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">{{ $page }}</a>
+                    @endif
+                @endforeach
+                @if($announcements->hasMorePages())
+                    <a href="{{ $announcements->nextPageUrl() }}"
+                       style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">Next ›</a>
+                @else
+                    <span style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:#ccc;cursor:not-allowed;">Next ›</span>
+                @endif
+            </div>
+        </div>
+        @endif
+
         @endif
     </div>
 </div>
@@ -118,7 +166,7 @@
 @endsection
 
 @section('modals')
-@foreach($announcements as $a)
+@foreach($announcements->items() as $a)
 @if($a->posted_by === auth()->id())
 <div class="modal-overlay" id="editModal-{{ $a->id }}">
     <div class="modal" style="max-width:500px;">

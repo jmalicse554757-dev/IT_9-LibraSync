@@ -10,31 +10,70 @@ use Illuminate\Http\Request;
 
 class BrowseBooksController extends Controller
 {
-    public function index()
-    {
-        $user = auth()->user();
+            public function index(Request $request)
+        {
+            $user = auth()->user();
 
-        // All books grouped by college
-        $colleges = College::with(['books' => function ($q) {
-            $q->orderBy('title');
-        }])->get();
+            // Get filter inputs
+            $search     = $request->input('search');
+            $collegeId  = $request->input('college_id');
+            $category   = $request->input('category');
+            $availability = $request->input('availability');
 
-        // Also get general/no-college books
-        $generalBooks = Book::whereNull('college_id')->orderBy('title')->get();
+            // Build query
+            $query = Book::with('college')->orderBy('title');
 
-        // Student's active pending/approved requests — to disable Request button
-        $myActiveBookIds = Borrowing::where('user_id', $user->id)
-            ->whereIn('borrow_status', ['pending', 'approved'])
-            ->whereNull('date_returned')
-            ->pluck('book_id')
-            ->toArray();
+            if ($search) {
+                $query->where(function ($q) use ($search) {
+                    $q->where('title', 'like', "%{$search}%")
+                    ->orWhere('author', 'like', "%{$search}%");
+                });
+            }
 
-        return view('student.browse-books', compact(
-            'colleges',
-            'generalBooks',
-            'myActiveBookIds'
-        ));
-    }
+            if ($collegeId) {
+                $query->where('college_id', $collegeId);
+            }
+
+            if ($category) {
+                $query->where('category', $category);
+            }
+
+            if ($availability === 'available') {
+                $query->where('stock', '>', 3);
+            } elseif ($availability === 'low stock') {
+                $query->where('stock', '>', 0)->where('stock', '<=', 3);
+            } elseif ($availability === 'unavailable') {
+                $query->where('stock', 0);
+            }
+
+            $books = $query->paginate(12)->withQueryString();
+
+            // For filter dropdowns
+            $colleges   = College::orderBy('name')->get();
+            $categories = Book::select('category')
+                            ->whereNotNull('category')
+                            ->distinct()
+                            ->orderBy('category')
+                            ->pluck('category');
+
+            // Student's active requests
+            $myActiveBookIds = Borrowing::where('user_id', $user->id)
+                ->whereIn('borrow_status', ['pending', 'approved'])
+                ->whereNull('date_returned')
+                ->pluck('book_id')
+                ->toArray();
+
+            return view('student.browse-books', compact(
+                'books',
+                'colleges',
+                'categories',
+                'myActiveBookIds',
+                'search',
+                'collegeId',
+                'category',
+                'availability'
+            ));
+        }
 
     public function requestBook(Request $request, Book $book)
     {

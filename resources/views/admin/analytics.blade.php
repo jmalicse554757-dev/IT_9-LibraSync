@@ -31,7 +31,7 @@
                 @endif
             </div>
         </div>
-        <div class="stat-value">{{ number_format($totalBorrowings) }}</div>
+        <div class="stat-value" style="color:var(--maroon-deep);">{{ number_format($totalBorrowings) }}</div>
     </div>
 
     <div class="stat-card">
@@ -45,7 +45,7 @@
                 @endif
             </div>
         </div>
-        <div class="stat-value" style="{{ $overdueCount > 0 ? 'color:var(--red-bright)' : 'color:#27ae60' }}">{{ $overdueCount }}</div>
+        <div class="stat-value" style="color:var(--maroon-deep);">{{ $overdueCount }}</div>
     </div>
 
     <div class="stat-card">
@@ -53,7 +53,7 @@
             <div class="stat-label">Room Bookings</div>
             <div class="stat-sub"><span>↑ {{ $roomBookingsThisMonth }} this month</span></div>
         </div>
-        <div class="stat-value">{{ number_format($roomBookings) }}</div>
+        <div class="stat-value" style="color:var(--maroon-deep);">{{ number_format($roomBookings) }}</div>
     </div>
 
 </div>
@@ -93,11 +93,10 @@
             <div style="flex:1;min-width:0;">
                 <div style="font-size:13px;font-weight:700;color:var(--maroon-deep);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ $book->title }}</div>
                 <div style="font-size:11px;color:var(--text-muted);">{{ $book->author }}</div>
-                {{-- Low stock warning --}}
                 @if($book->stock == 0)
-                    <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(192,57,43,0.1);color:var(--red-bright);">⚠ Out of Stock</span>
+                    <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(192,57,43,0.1);color:var(--red-bright);">Out of Stock</span>
                 @elseif($book->stock <= 2)
-                    <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(230,126,34,0.1);color:#e67e22;">⚠ Low Stock ({{ $book->stock }} left)</span>
+                    <span style="font-size:10px;font-weight:700;padding:1px 7px;border-radius:20px;background:rgba(230,126,34,0.1);color:#e67e22;">Low Stock ({{ $book->stock }} left)</span>
                 @endif
             </div>
             <div style="text-align:right;flex-shrink:0;">
@@ -151,7 +150,6 @@
 
 @section('scripts')
 <script>
-// Monthly Trend Line Chart
 const trendCtx = document.getElementById('trendChart').getContext('2d');
 new Chart(trendCtx, {
     type: 'line',
@@ -180,7 +178,6 @@ new Chart(trendCtx, {
 });
 
 @if(count($programLabels) > 0)
-// Borrowing by Program Bar Chart
 const programCtx = document.getElementById('programChart').getContext('2d');
 new Chart(programCtx, {
     type: 'bar',

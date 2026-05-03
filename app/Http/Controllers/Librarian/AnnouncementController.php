@@ -9,13 +9,20 @@ use Illuminate\Http\Request;
 
 class AnnouncementController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $announcements = Announcement::with('author')
-            ->latest()
-            ->get();
+        $search = $request->input('search');
 
-        return view('librarian.announcements', compact('announcements'));
+        $announcements = Announcement::with('author')
+            ->when($search, function ($q) use ($search) {
+                $q->where('title', 'like', "%$search%")
+                ->orWhere('body',  'like', "%$search%");
+            })
+            ->latest()
+            ->paginate(10)
+            ->withQueryString();
+
+        return view('librarian.announcements', compact('announcements', 'search'));
     }
 
     public function store(Request $request)

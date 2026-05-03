@@ -11,18 +11,18 @@ Route::get('/', function () {
             'admin'     => '/admin/dashboard',
             'librarian' => '/librarian/dashboard',
             'student'   => '/student/dashboard',
-            default     => '/login',
+            default     => '/',
         });
     }
-    return redirect()->route('login');
-});
+    return view('landing');
+})->name('landing');
 
 // Temp logout for testing
 Route::get('/logout-now', function() {
     auth()->logout();
     session()->invalidate();
     session()->regenerateToken();
-    return redirect('/login');
+    return redirect('/');
 });
 
 // Auth routes
@@ -43,7 +43,6 @@ Route::middleware(['auth', 'check.status', 'role:admin'])->prefix('admin')->name
     Route::post('/account-requests/{user}/reject', [App\Http\Controllers\Admin\AccountRequestController::class, 'reject'])->name('account-requests.reject');
     Route::get('/database', [App\Http\Controllers\Admin\DatabaseController::class, 'index'])->name('database');
     Route::get('/analytics', [App\Http\Controllers\Admin\AnalyticsController::class, 'index'])->name('analytics');
-    Route::get('/database', [App\Http\Controllers\Admin\DatabaseController::class, 'index'])->name('database');
     Route::get('/database/export-csv', [App\Http\Controllers\Admin\DatabaseController::class, 'exportCsv'])->name('database.export-csv');
     Route::get('/database/audit-log', [App\Http\Controllers\Admin\DatabaseController::class, 'auditLog'])->name('database.audit-log');
     Route::get('/announcements', [App\Http\Controllers\Admin\AnnouncementController::class, 'index'])->name('announcements');
@@ -84,38 +83,25 @@ Route::middleware(['auth', 'check.status', 'role:librarian'])->prefix('librarian
 
 // Student routes
 Route::middleware(['auth', 'check.status', 'role:student'])->prefix('student')->name('student.')->group(function () {
-
-    // Dashboard
     Route::get('/dashboard', [App\Http\Controllers\Student\DashboardController::class, 'index'])->name('dashboard');
-    // Profile
     Route::get('/profile', [App\Http\Controllers\Student\ProfileController::class, 'index'])->name('profile');
     Route::post('/profile/update', [App\Http\Controllers\Student\ProfileController::class, 'update'])->name('profile.update');
     Route::post('/profile/password', [App\Http\Controllers\Student\ProfileController::class, 'updatePassword'])->name('profile.password');
-    // Browse Books
     Route::get('/browse-books', [App\Http\Controllers\Student\BrowseBooksController::class, 'index'])->name('browse-books');
     Route::post('/browse-books/{book}/request', [App\Http\Controllers\Student\BrowseBooksController::class, 'requestBook'])->name('browse-books.request');
     Route::delete('/browse-books/{book}/cancel', [App\Http\Controllers\Student\BrowseBooksController::class, 'cancelRequest'])->name('browse-books.cancel');
-    // Borrowed Books
-    Route::get('/borrowed-books', [App\Http\Controllers\Student\BorrowedBooksController::class, 'index'])->name('borrowed-books');
-    // Records & History
-    Route::get('/records', [App\Http\Controllers\Student\RecordsController::class, 'index'])->name('records');
-    // Spaces & Zones
-    Route::get('/spaces', [App\Http\Controllers\Student\SpacesController::class, 'index'])->name('spaces');
-    Route::post('/spaces/collab/{collabRoom}/request', [App\Http\Controllers\Student\SpacesController::class, 'requestRoom'])->name('spaces.request-room');
-    Route::post('/spaces/rest/{restZone}/attend', [App\Http\Controllers\Student\SpacesController::class, 'attendRestZone'])->name('spaces.attend-rest-zone');
-    // Borrowed Books
     Route::get('/borrowed-books', [App\Http\Controllers\Student\BorrowedBooksController::class, 'index'])->name('borrowed-books');
     Route::delete('/borrowed-books/{borrowing}/cancel', [App\Http\Controllers\Student\BorrowedBooksController::class, 'cancel'])->name('borrowed-books.cancel');
-    //restsones
+    Route::get('/records', [App\Http\Controllers\Student\RecordsController::class, 'index'])->name('records');
     Route::get('/spaces', [App\Http\Controllers\Student\SpacesController::class, 'index'])->name('spaces');
     Route::post('/spaces/collab/{collabRoom}/request', [App\Http\Controllers\Student\SpacesController::class, 'requestRoom'])->name('spaces.request-room');
     Route::post('/spaces/rest/{restZone}/attend', [App\Http\Controllers\Student\SpacesController::class, 'attendRestZone'])->name('spaces.attend-rest-zone');
     Route::get('/announcements', [App\Http\Controllers\Student\AnnouncementController::class, 'index'])->name('announcements');
-    });
+});
 
-    // Notifications (shared across all roles)
+// Notifications (shared across all roles)
 Route::middleware(['auth', 'check.status'])->group(function () {
-    Route::get('/notifications',          [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
+    Route::get('/notifications', [App\Http\Controllers\NotificationController::class, 'index'])->name('notifications.index');
     Route::get('/notifications/unread-count', [App\Http\Controllers\NotificationController::class, 'unreadCount'])->name('notifications.unread-count');
     Route::post('/notifications/mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllRead'])->name('notifications.mark-all-read');
 });

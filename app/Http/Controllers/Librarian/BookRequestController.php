@@ -38,27 +38,57 @@ class BookRequestController extends Controller
         return $days;
     }
 
-    public function index()
-    {
-        $pending  = Borrowing::with(['user', 'book'])
-                        ->where('borrow_status', 'pending')
-                        ->latest()
-                        ->get();
+    public function index(Request $request)
+{
+    $search = $request->input('search');
 
-        $approved = Borrowing::with(['user', 'book', 'penalty'])
-                        ->where('borrow_status', 'approved')
-                        ->whereNull('date_returned')
-                        ->latest()
-                        ->get();
+    $pending = Borrowing::with(['user', 'book'])
+        ->where('borrow_status', 'pending')
+        ->when($search, function ($q) use ($search) {
+            $q->where(function($inner) use ($search) {
+                $inner->whereHas('user', fn($u) => $u->where('first_name', 'like', "%$search%")
+                                                      ->orWhere('last_name',  'like', "%$search%")
+                                                      ->orWhere('student_id', 'like', "%$search%"))
+                      ->orWhereHas('book', fn($b) => $b->where('title', 'like', "%$search%"));
+            });
+        })
+        ->latest()
+        ->paginate(10, ['*'], 'pending_page')
+        ->withQueryString();
 
-        $returned = Borrowing::with(['user', 'book', 'penalty'])
-                        ->where('borrow_status', 'approved')
-                        ->whereNotNull('date_returned')
-                        ->latest()
-                        ->get();
+    $approved = Borrowing::with(['user', 'book', 'penalty'])
+        ->where('borrow_status', 'approved')
+        ->whereNull('date_returned')
+        ->when($search, function ($q) use ($search) {
+            $q->where(function($inner) use ($search) {
+                $inner->whereHas('user', fn($u) => $u->where('first_name', 'like', "%$search%")
+                                                      ->orWhere('last_name',  'like', "%$search%")
+                                                      ->orWhere('student_id', 'like', "%$search%"))
+                      ->orWhereHas('book', fn($b) => $b->where('title', 'like', "%$search%"));
+            });
+        })
+        ->latest()
+        ->paginate(10, ['*'], 'approved_page')
+        ->withQueryString();
 
-        return view('librarian.book-requests', compact('pending', 'approved', 'returned'));
-    }
+    $returned = Borrowing::with(['user', 'book', 'penalty'])
+        ->where('borrow_status', 'approved')
+        ->whereNotNull('date_returned')
+        ->when($search, function ($q) use ($search) {
+            $q->where(function($inner) use ($search) {
+                $inner->whereHas('user', fn($u) => $u->where('first_name', 'like', "%$search%")
+                                                      ->orWhere('last_name',  'like', "%$search%")
+                                                      ->orWhere('student_id', 'like', "%$search%"))
+                      ->orWhereHas('book', fn($b) => $b->where('title', 'like', "%$search%"));
+            });
+        })
+        ->latest()
+        ->paginate(10, ['*'], 'returned_page')
+        ->withQueryString();
+
+    return view('librarian.book-requests', compact('pending', 'approved', 'returned', 'search'));
+}
+
 
     public function approve(Borrowing $borrowing)
     {

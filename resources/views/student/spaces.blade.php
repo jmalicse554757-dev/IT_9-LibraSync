@@ -47,7 +47,7 @@
     {{-- Pending Request Notice --}}
     @if($hasPendingRoomRequest)
     <div style="background:rgba(230,126,34,0.08);border:1px solid rgba(230,126,34,0.3);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:13px;color:#e67e22;font-weight:600;">
-        ⏳ You have a pending room request. Please wait for librarian approval before submitting another.
+         You have a pending room request. Please wait for librarian approval before submitting another.
     </div>
     @endif
 
@@ -163,9 +163,9 @@
     @if($todayAttendance && !session('success'))
     <div style="background:rgba(39,174,96,0.08);border:1px solid rgba(39,174,96,0.3);border-radius:10px;padding:12px 16px;margin-bottom:18px;font-size:13px;color:#27ae60;font-weight:600;">
         @if($todayAttendance->status === 'pending')
-            ⏳ Your attendance is submitted and waiting for librarian confirmation.
+            Your attendance is submitted and waiting for librarian confirmation.
         @else
-            ✅ You are currently confirmed inside {{ $todayAttendance->restZone?->name }}.
+             You are currently confirmed inside {{ $todayAttendance->restZone?->name }}.
         @endif
     </div>
     @endif
@@ -264,7 +264,7 @@
 <div class="modal-overlay" id="guidelinesModal">
     <div class="modal" style="max-width:540px;">
         <button class="modal-close" onclick="closeModal('guidelinesModal')">✕</button>
-        <div class="modal-title">📋 Collab Room Guidelines</div>
+        <div class="modal-title"> Collab Room Guidelines</div>
         <div style="font-size:13px;color:var(--text-dark);line-height:1.8;">
             <div style="margin-bottom:12px;padding:10px 14px;background:var(--cream);border-radius:8px;border-left:3px solid var(--red-main);">
                 <strong>1. Minimum of 3 students required</strong> to book a collab room. Individual use is not allowed.
@@ -298,7 +298,7 @@
 <div class="modal-overlay" id="restGuidelinesModal">
     <div class="modal" style="max-width:540px;">
         <button class="modal-close" onclick="closeModal('restGuidelinesModal')">✕</button>
-        <div class="modal-title">😴 Rest Zone Guidelines</div>
+        <div class="modal-title">Rest Zone Guidelines</div>
         <div style="font-size:13px;color:var(--text-dark);line-height:1.8;">
             <div style="margin-bottom:12px;padding:10px 14px;background:var(--cream);border-radius:8px;border-left:3px solid var(--red-main);">
                 <strong>1. For rest purposes only.</strong> Studying or group activities are not allowed in rest zones.
@@ -414,7 +414,7 @@
             </div>
         </div>
         <div style="text-align:center;padding:20px;color:var(--text-muted);">
-            <div style="font-size:32px;margin-bottom:8px;">✅</div>
+            <div style="font-size:32px;margin-bottom:8px;"></div>
             <div style="font-size:13px;font-weight:600;color:var(--maroon-deep);">Your request is approved!</div>
             <div style="font-size:12px;margin-top:4px;">Present this to the librarian on the day of your session. The librarian will confirm your entry.</div>
         </div>

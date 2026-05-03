@@ -15,7 +15,7 @@ class CollabZoneController extends Controller
     {
         $collabRooms      = CollabRoom::with(['requests' => function($q) {
                                 $q->where('status', 'pending')
-                                  ->with('user');
+                                ->with('user');
                             }])->get();
 
         $pendingRoomReqs  = CollabRoomRequest::with(['room', 'user'])
@@ -25,7 +25,7 @@ class CollabZoneController extends Controller
 
         $restZones        = RestZone::with(['attendances' => function($q) {
                                 $q->whereDate('attendance_date', today())
-                                  ->with('user');
+                                ->with('user');
                             }, 'assignedLibrarian'])->get();
 
         return view('librarian.collab-zones', compact(

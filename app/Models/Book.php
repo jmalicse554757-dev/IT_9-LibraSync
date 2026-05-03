@@ -27,7 +27,7 @@ class Book extends Model
         'stock' => 'integer',
     ];
 
-    public function college()
+     public function college()
     {
         return $this->belongsTo(College::class);
     }

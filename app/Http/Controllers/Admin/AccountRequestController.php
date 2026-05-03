@@ -8,20 +8,35 @@ use Illuminate\Http\Request;
 
 class AccountRequestController extends Controller
 {
-    public function index()
-    {
-        $pendingStudents   = User::where('role', 'student')
-                                ->where('status', 'pending')
-                                ->latest()
-                                ->get();
+            public function index(Request $request)
+        {
+            $search = $request->input('search');
 
-        $pendingLibrarians = User::where('role', 'librarian')
-                                ->where('status', 'pending')
-                                ->latest()
-                                ->get();
+            $pendingStudents = User::where('role', 'student')
+                ->where('status', 'pending')
+                ->when($search, function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%$search%")
+                    ->orWhere('last_name',  'like', "%$search%")
+                    ->orWhere('student_id', 'like', "%$search%")
+                    ->orWhere('email',      'like', "%$search%");
+                })
+                ->latest()
+                ->paginate(10, ['*'], 'students_page')
+                ->withQueryString();
 
-        return view('admin.account-requests', compact('pendingStudents', 'pendingLibrarians'));
-    }
+            $pendingLibrarians = User::where('role', 'librarian')
+                ->where('status', 'pending')
+                ->when($search, function ($q) use ($search) {
+                    $q->where('first_name', 'like', "%$search%")
+                    ->orWhere('last_name',  'like', "%$search%")
+                    ->orWhere('email',      'like', "%$search%");
+                })
+                ->latest()
+                ->paginate(10, ['*'], 'librarians_page')
+                ->withQueryString();
+
+            return view('admin.account-requests', compact('pendingStudents', 'pendingLibrarians', 'search'));
+        }
 
     public function approve(User $user)
     {

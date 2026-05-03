@@ -171,7 +171,7 @@
                 </div>
                 {{-- Upload button --}}
                     <label for="profile_picture" style="display:inline-block;margin-top:6px;padding:7px 18px;background:linear-gradient(135deg,var(--maroon-mid),var(--red-bright));color:#fff;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;box-shadow:0 4px 12px rgba(107,0,0,0.25);">
-                                    📷 Upload Photo
+                                     Upload Photo
                     </label>
                     <input type="file" id="profile_picture" name="profile_picture" accept="image/*" style="display:none;" onchange="previewPhoto(this)">
                     <div style="font-size:10px;color:var(--text-muted);margin-top:6px;">JPG or PNG, max 2MB</div>

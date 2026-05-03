@@ -20,13 +20,47 @@
 </div>
 @endif
 
-{{-- SEARCH --}}
+{{-- SEARCH & FILTERS --}}
 <div style="margin-bottom:18px;">
     <form method="GET" action="{{ route('librarian.book-catalog') }}">
-        <div style="position:relative;">
-            <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);color:var(--text-muted);" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by title, author, ISBN, Book ID..."
-                style="width:100%;padding:10px 14px 10px 40px;border:1px solid var(--border);border-radius:10px;font-size:13px;background:var(--white);color:var(--text-dark);outline:none;font-family:'Lato',sans-serif;">
+        <div style="display:flex;flex-wrap:wrap;gap:10px;">
+
+            <div style="position:relative;flex:1;min-width:220px;">
+                <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);opacity:0.4;" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by title, author, ISBN, Book ID..."
+                    style="width:100%;padding:10px 14px 10px 40px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;background:var(--white);color:var(--text-dark);outline:none;font-family:'Lato',sans-serif;">
+            </div>
+
+            <select name="college_id" onchange="this.form.submit()"
+                style="padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;outline:none;background:#fff;min-width:160px;">
+                <option value="">All Colleges</option>
+                @foreach($colleges as $col)
+                    <option value="{{ $col->id }}" {{ request('college_id') == $col->id ? 'selected' : '' }}>
+                        {{ $col->code }} - {{ $col->name }}
+                    </option>
+                @endforeach
+            </select>
+
+            <select name="availability" onchange="this.form.submit()"
+                style="padding:10px 14px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;outline:none;background:#fff;min-width:150px;">
+                <option value="">All Status</option>
+                <option value="available"   {{ request('availability') === 'available'   ? 'selected' : '' }}>Available</option>
+                <option value="low stock"   {{ request('availability') === 'low stock'   ? 'selected' : '' }}>Low Stock</option>
+                <option value="unavailable" {{ request('availability') === 'unavailable' ? 'selected' : '' }}>Unavailable</option>
+            </select>
+
+            <button type="submit"
+                style="padding:10px 20px;background:var(--maroon-deep);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">
+                Search
+            </button>
+
+            @if(request('search') || request('college_id') || request('availability'))
+            <a href="{{ route('librarian.book-catalog') }}"
+                style="padding:10px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;color:var(--text-muted);text-decoration:none;display:flex;align-items:center;">
+                Clear
+            </a>
+            @endif
+
         </div>
     </form>
 </div>
@@ -110,8 +144,35 @@
 
 {{-- PAGINATION --}}
 @if($books->hasPages())
-<div style="margin-top:16px;display:flex;justify-content:flex-end;">
-    {{ $books->links() }}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px;">
+    <div style="font-size:13px;color:var(--text-muted);">
+        Showing <strong>{{ $books->firstItem() }}</strong> - <strong>{{ $books->lastItem() }}</strong>
+        of <strong>{{ $books->total() }}</strong> books
+    </div>
+    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+        @if($books->onFirstPage())
+            <span style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:#ccc;cursor:not-allowed;">‹ Prev</span>
+        @else
+            <a href="{{ $books->previousPageUrl() }}"
+               style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">‹ Prev</a>
+        @endif
+
+        @foreach($books->getUrlRange(1, $books->lastPage()) as $page => $url)
+            @if($page == $books->currentPage())
+                <span style="padding:7px 13px;border-radius:8px;background:var(--maroon-deep);color:#fff;font-size:13px;font-weight:700;">{{ $page }}</span>
+            @else
+                <a href="{{ $url }}"
+                   style="padding:7px 13px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">{{ $page }}</a>
+            @endif
+        @endforeach
+
+        @if($books->hasMorePages())
+            <a href="{{ $books->nextPageUrl() }}"
+               style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">Next ›</a>
+        @else
+            <span style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:#ccc;cursor:not-allowed;">Next ›</span>
+        @endif
+    </div>
 </div>
 @endif
 

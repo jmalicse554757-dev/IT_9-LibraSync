@@ -19,12 +19,33 @@
 </div>
 @endif
 
+{{-- SEARCH --}}
+<form method="GET" action="{{ route('librarian.book-requests') }}" style="margin-bottom:18px;">
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+        <div style="position:relative;flex:1;min-width:220px;">
+            <svg style="position:absolute;left:14px;top:50%;transform:translateY(-50%);opacity:0.4;" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+            <input type="text" name="search" value="{{ $search }}" placeholder="Search by student name, student ID, or book title..."
+                style="width:100%;padding:10px 14px 10px 40px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;background:var(--white);color:var(--text-dark);outline:none;font-family:'Lato',sans-serif;">
+        </div>
+        <button type="submit"
+            style="padding:10px 20px;background:var(--maroon-deep);color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;">
+            Search
+        </button>
+        @if($search)
+        <a href="{{ route('librarian.book-requests') }}"
+            style="padding:10px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:13px;color:var(--text-muted);text-decoration:none;display:flex;align-items:center;">
+            Clear
+        </a>
+        @endif
+    </div>
+</form>
+
 {{-- TABS --}}
 <div class="tabs">
     <button class="tab active" id="tabPending"  onclick="switchTab('pending')">
         Pending
-        @if($pending->count() > 0)
-            <span style="background:var(--red-main);color:#fff;border-radius:20px;padding:1px 7px;font-size:9px;margin-left:5px;">{{ $pending->count() }}</span>
+        @if($pending->total() > 0)
+            <span style="background:var(--red-main);color:#fff;border-radius:20px;padding:1px 7px;font-size:9px;margin-left:5px;">{{ $pending->total() }}</span>
         @endif
     </button>
     <button class="tab" id="tabApproved" onclick="switchTab('approved')">Approved</button>
@@ -70,9 +91,41 @@
                 @endforeach
             </tbody>
         </table>
+
+        {{-- PENDING PAGINATION --}}
+        @if($pending->hasPages())
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px;">
+            <div style="font-size:13px;color:var(--text-muted);">
+                Showing <strong>{{ $pending->firstItem() }}</strong> - <strong>{{ $pending->lastItem() }}</strong>
+                of <strong>{{ $pending->total() }}</strong> records
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                @if($pending->onFirstPage())
+                    <span style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:#ccc;cursor:not-allowed;">‹ Prev</span>
+                @else
+                    <a href="{{ $pending->previousPageUrl() }}"
+                       style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">‹ Prev</a>
+                @endif
+                @foreach($pending->getUrlRange(1, $pending->lastPage()) as $page => $url)
+                    @if($page == $pending->currentPage())
+                        <span style="padding:7px 13px;border-radius:8px;background:var(--maroon-deep);color:#fff;font-size:13px;font-weight:700;">{{ $page }}</span>
+                    @else
+                        <a href="{{ $url }}"
+                           style="padding:7px 13px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">{{ $page }}</a>
+                    @endif
+                @endforeach
+                @if($pending->hasMorePages())
+                    <a href="{{ $pending->nextPageUrl() }}"
+                       style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">Next ›</a>
+                @else
+                    <span style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:#ccc;cursor:not-allowed;">Next ›</span>
+                @endif
+            </div>
+        </div>
+        @endif
+
         @else
         <div style="text-align:center;padding:40px;color:var(--text-muted);">
-            <div style="font-size:32px;margin-bottom:12px;">📭</div>
             <div style="font-size:14px;font-weight:600;">No pending requests</div>
         </div>
         @endif
@@ -82,9 +135,9 @@
 {{-- APPROVED TAB --}}
 <div id="panelApproved" style="display:none;">
     <div style="background:rgba(232,213,196,0.3);border:1px solid var(--border);border-radius:10px;padding:12px 16px;margin-bottom:16px;font-size:12px;color:var(--text-muted);">
-        Active Loans: Status is auto-tracked — 
-        <span style="background:rgba(39,174,96,0.1);color:#27ae60;padding:2px 8px;border-radius:20px;font-weight:700;">Active</span> while within due date, 
-        <span style="background:rgba(230,126,34,0.1);color:#e67e22;padding:2px 8px;border-radius:20px;font-weight:700;">Due Today</span> on the last day, 
+        Active Loans: Status is auto-tracked —
+        <span style="background:rgba(39,174,96,0.1);color:#27ae60;padding:2px 8px;border-radius:20px;font-weight:700;">Active</span> while within due date,
+        <span style="background:rgba(230,126,34,0.1);color:#e67e22;padding:2px 8px;border-radius:20px;font-weight:700;">Due Today</span> on the last day,
         <span style="background:rgba(192,57,43,0.1);color:#c0392b;padding:2px 8px;border-radius:20px;font-weight:700;">Overdue</span> past due date.
     </div>
     <div class="card">
@@ -143,9 +196,41 @@
                 @endforeach
             </tbody>
         </table>
+
+        {{-- APPROVED PAGINATION --}}
+        @if($approved->hasPages())
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px;">
+            <div style="font-size:13px;color:var(--text-muted);">
+                Showing <strong>{{ $approved->firstItem() }}</strong> - <strong>{{ $approved->lastItem() }}</strong>
+                of <strong>{{ $approved->total() }}</strong> records
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                @if($approved->onFirstPage())
+                    <span style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:#ccc;cursor:not-allowed;">‹ Prev</span>
+                @else
+                    <a href="{{ $approved->previousPageUrl() }}"
+                       style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">‹ Prev</a>
+                @endif
+                @foreach($approved->getUrlRange(1, $approved->lastPage()) as $page => $url)
+                    @if($page == $approved->currentPage())
+                        <span style="padding:7px 13px;border-radius:8px;background:var(--maroon-deep);color:#fff;font-size:13px;font-weight:700;">{{ $page }}</span>
+                    @else
+                        <a href="{{ $url }}"
+                           style="padding:7px 13px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">{{ $page }}</a>
+                    @endif
+                @endforeach
+                @if($approved->hasMorePages())
+                    <a href="{{ $approved->nextPageUrl() }}"
+                       style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">Next ›</a>
+                @else
+                    <span style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:#ccc;cursor:not-allowed;">Next ›</span>
+                @endif
+            </div>
+        </div>
+        @endif
+
         @else
         <div style="text-align:center;padding:40px;color:var(--text-muted);">
-            <div style="font-size:32px;margin-bottom:12px;">📚</div>
             <div style="font-size:14px;font-weight:600;">No active loans</div>
         </div>
         @endif
@@ -193,9 +278,41 @@
                 @endforeach
             </tbody>
         </table>
+
+        {{-- RETURNED PAGINATION --}}
+        @if($returned->hasPages())
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px;">
+            <div style="font-size:13px;color:var(--text-muted);">
+                Showing <strong>{{ $returned->firstItem() }}</strong> - <strong>{{ $returned->lastItem() }}</strong>
+                of <strong>{{ $returned->total() }}</strong> records
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
+                @if($returned->onFirstPage())
+                    <span style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:#ccc;cursor:not-allowed;">‹ Prev</span>
+                @else
+                    <a href="{{ $returned->previousPageUrl() }}"
+                       style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">‹ Prev</a>
+                @endif
+                @foreach($returned->getUrlRange(1, $returned->lastPage()) as $page => $url)
+                    @if($page == $returned->currentPage())
+                        <span style="padding:7px 13px;border-radius:8px;background:var(--maroon-deep);color:#fff;font-size:13px;font-weight:700;">{{ $page }}</span>
+                    @else
+                        <a href="{{ $url }}"
+                           style="padding:7px 13px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">{{ $page }}</a>
+                    @endif
+                @endforeach
+                @if($returned->hasMorePages())
+                    <a href="{{ $returned->nextPageUrl() }}"
+                       style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:var(--maroon-deep);text-decoration:none;font-weight:600;">Next ›</a>
+                @else
+                    <span style="padding:7px 14px;border-radius:8px;border:1.5px solid var(--border);font-size:13px;color:#ccc;cursor:not-allowed;">Next ›</span>
+                @endif
+            </div>
+        </div>
+        @endif
+
         @else
         <div style="text-align:center;padding:40px;color:var(--text-muted);">
-            <div style="font-size:32px;margin-bottom:12px;">📋</div>
             <div style="font-size:14px;font-weight:600;">No returned books yet</div>
         </div>
         @endif
@@ -207,14 +324,12 @@
 {{-- MODALS --}}
 @section('modals')
 
-{{-- RECEIPT MODALS --}}
-@foreach($approved as $borrowing)
+{{-- RECEIPT + RETURN MODALS --}}
+@foreach($approved->items() as $borrowing)
 @php $loanStatus = $borrowing->status; @endphp
 <div class="modal-overlay" id="receipt-{{ $borrowing->id }}">
     <div class="modal" style="max-width:560px;">
         <button class="modal-close" onclick="closeModal('receipt-{{ $borrowing->id }}')">✕</button>
-
-        {{-- Receipt Header --}}
         <div class="receipt-header">
             <div style="display:flex;justify-content:space-between;align-items:flex-start;">
                 <div>
@@ -230,8 +345,6 @@
                 </div>
             </div>
         </div>
-
-        {{-- Receipt Details --}}
         <div class="receipt-grid">
             <div class="receipt-field">
                 <div class="receipt-label">Borrower</div>
@@ -266,14 +379,11 @@
                 </div>
             </div>
         </div>
-
         @if($loanStatus === 'overdue')
         <div style="background:rgba(192,57,43,0.07);border:1px solid rgba(192,57,43,0.2);border-radius:8px;padding:10px 14px;margin-bottom:16px;font-size:12px;color:#c0392b;font-weight:600;">
             This book is overdue. Student must return it immediately.
         </div>
         @endif
-
-        {{-- Actions --}}
         <div style="display:flex;gap:8px;">
             <button class="btn btn-approve" style="flex:1;" onclick="openModal('return-{{ $borrowing->id }}');closeModal('receipt-{{ $borrowing->id }}')">
                 Confirm Physical Return
@@ -283,8 +393,6 @@
                 Print
             </button>
         </div>
-
-        {{-- Print area (hidden) --}}
         <div id="receipt-print-{{ $borrowing->id }}" style="display:none;">
             <h3>LibraSync Library Management System</h3>
             <p>Receipt No: {{ $borrowing->receipt_no }}</p>
@@ -294,16 +402,13 @@
             <p>Date Borrowed: {{ $borrowing->date_borrowed?->format('M d, Y') }}</p>
             <p>Due Date: {{ $borrowing->due_date?->format('M d, Y') }}</p>
             <p>Loan Period: {{ $borrowing->school_days_loan }} School Days</p>
-            <p>LibraSync Library Management System · Librarian copy</p>
         </div>
-
         <div style="text-align:center;margin-top:16px;padding-top:16px;border-top:1px dashed var(--border);font-size:10px;color:var(--text-muted);">
             LibraSync Library Management System · Librarian copy
         </div>
     </div>
 </div>
 
-{{-- CONFIRM RETURN MODAL --}}
 <div class="modal-overlay" id="return-{{ $borrowing->id }}">
     <div class="modal" style="max-width:500px;">
         <button class="modal-close" onclick="closeModal('return-{{ $borrowing->id }}')">✕</button>
@@ -315,7 +420,6 @@
             <div style="font-size:12px;color:var(--text-muted);">Receipt No.: <span style="color:var(--red-main);font-weight:700;">{{ $borrowing->receipt_no }}</span></div>
             <div style="font-size:12px;color:var(--text-muted);">Book: <span style="font-weight:700;color:var(--maroon-deep);">{{ $borrowing->book?->title }}</span></div>
         </div>
-
         <form method="POST" action="{{ route('librarian.book-requests.return', $borrowing) }}">
             @csrf
             <div style="margin-bottom:14px;">
@@ -364,7 +468,6 @@ function printReceipt(id) {
             body { font-family: 'Lato', sans-serif; padding: 40px; color: #1a0000; }
             h3 { font-size: 18px; margin-bottom: 20px; color: #3b0000; }
             p { margin: 8px 0; font-size: 14px; }
-            hr { border: none; border-top: 1px dashed #ccc; margin: 20px 0; }
         </style>
         </head><body>${content}</body></html>
     `);

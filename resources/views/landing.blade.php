@@ -213,7 +213,7 @@
             gap:14px;max-width:900px;margin:0 auto;
         }
         .feature-card{
-            background:var(--cream);
+            background:var(--white);
             border:1px solid var(--border);
             border-radius:11px;
             padding:20px 18px;
